@@ -1,0 +1,374 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:p="http://primefaces.org/ui" 
+      xmlns:ui="http://xmlns.jcp.org/jsf/facelets">
+    <h:head>
+        <title>User Homepage</title>
+    </h:head>
+    <h:body  style="background-image: url(../images/clouds.jpg);background-color:lightblue; background-size: cover;
+             background-repeat: no-repeat;background-attachment: fixed;font-size: 18px; width: 50%; height: 50%">
+        <h:form  style=" alignment-adjust: 3000px;font-size:30px; alignment-adjust: auto " >
+
+            <p:poll interval="15" listener="#{notificationBean.checkUnseen()}" update="notifications" async="true" >
+                <p:growl id="growl" showDetail="false" autoUpdate="true" globalOnly="true" />
+            </p:poll>
+
+            <p:panel style="width: auto;position: absolute; ">
+                <h:outputText value="#{userBean.username}" style="font-size:90px;font-style: italic;
+                              font-weight: bold;  " />
+            </p:panel>
+
+            <p:panel style="width: 1500px; height: auto; margin: 0px 950px; position: absolute; 
+                     alignment-adjust: auto; ">
+                <h:panelGrid columns="3" cellspacing="20">
+                    <p:commandButton id="notifications" value="#{notificationBean.unseen}" update="notifications"
+                                     onmouseup="PF('notificationsList').show();" 
+                                     style="background-color: yellow; color: red; font-size: 28px; 
+                                     background-size: contain;width: 90px; height: 90px;
+                                     background-image: url(../images/notification.png);  
+                                     background-repeat: no-repeat;" actionListener="#{notificationBean.init()}" > 
+                        <p:tooltip id="toolTipFade" for="notifications" showEvent="mouseover" hideEvent="mouseout"  
+                                   value="Click on the bell icon to handle your notifications!" />
+                        <p:ajax update="notifications" async="true" />
+                    </p:commandButton>
+
+                    <h:panelGrid columns="3" cellspacing="15">
+                        <p:commandButton id="createEvent" value="Create Event" ajax="true" onsuccess="PF('eventDialog').show()" 
+                                         update="@none" style="; width: 300px" 
+                                         rendered="#{searchHandlerBean.isYourCalendar()}" />
+
+                        <p:commandButton id="home" value="Homepage" ajax="true" action="home?faces-redirect=true" 
+                                         update="@none" style="; width: 300px" actionListener="#{searchHandlerBean.removeSelected()}" 
+                                         rendered="#{searchHandlerBean.notIsYourCalendar()}" />
+
+                        <h:outputLabel for="searchUser" value="Search:" style="font-weight: bold; width: 300px" />
+                        <p:inputText id="searchUser" required="false" label="Search" value="#{searchHandlerBean.prefix}" 
+                                     placeholder="Insert an username..."     
+                                     style="width: 350px; font-style: italic; font-size: 25px  " >
+                            <p:ajax update="resultsDialog" resetValues="true" oncomplete="PF('results').show()"
+                                    async="true"/>
+                        </p:inputText>
+                        <p:message for="searchUser" />
+                    </h:panelGrid>
+
+                    <h:panelGrid columns="2" cellspacing="15" >  
+                        <p:commandButton id="profile" value="Profile" action="profilePage?faces-redirect=true" ajax="true" 
+                                         update="@none" actionListener="#{searchHandlerBean.removeSelected()}" />
+
+                        <p:commandButton id="logout" action="#{loginBean.logout()}" value="Logout" ajax="false" update="@none"
+                                         style=" background-color: red"  />
+                    </h:panelGrid> 
+                </h:panelGrid>
+            </p:panel>
+
+            <h:panelGrid columnClasses="value" style="margin: 120px 150px;position: absolute;
+                         font-size: 30px; width: 2200px" >
+                <h3 style="margin-top: 100px ">
+                    <h:outputText value="#{searchHandlerBean.actualUsername()}" style=" font-size:60px;font-family: fantasy " />
+                </h3>
+                <p:schedule id="schedule" value="#{calendarBean.eventModel}" widgetVar="myschedule" timeZone="GMT+1"
+                            draggable="false" resizable="false"   >
+
+                    <p:ajax event="eventSelect" update="eventDetails" listener="#{calendarBean.onEventSelect}" 
+                            oncomplete="PF('message').show()"  />
+
+                </p:schedule>
+            </h:panelGrid>
+
+            <p:dialog widgetVar="eventDialog" header="Event Details" showEffect="clip" hideEffect="clip" 
+                      style="font-size: 20px; position: fixed " dynamic="true" closable="false" position="top" 
+                      resizable="false">
+                <h:panelGrid id="eventDetails" columns="1" >
+                    <h:outputLabel for="name" value="Name:" />
+                    <p:inputText id="name" value="#{createEventBean.event.name}" >
+                        <p:ajax update="namemsg"/>
+                    </p:inputText>
+                    <p:message id="namemsg" for="name" />
+
+                    <h:outputLabel for="country" value="Country:" />
+                    <p:inputText id="country" value="#{createEventBean.event.country}" > 
+                        <p:ajax update="countrymsg"/>
+                    </p:inputText>
+                    <p:message id="countrymsg" for="country" />
+
+                    <h:outputLabel for="city" value="City:" />
+                    <p:inputText id="city" value="#{createEventBean.event.city}" >
+                        <p:ajax update="citymsg"/>
+                    </p:inputText>
+                    <p:message id="citymsg" for="city" />
+
+                    <h:outputLabel for="place" value="Place:" />
+                    <p:inputText id="place" value="#{createEventBean.event.place}" >
+                        <p:ajax update="placemsg"/>
+                    </p:inputText>
+                    <p:message id="placemsg" for="place" />
+
+                    <h3>Description</h3>
+                    <p:inputTextarea rows="6" cols="33" required="false" value="#{createEventBean.event.description}" />
+
+                    <h:panelGrid columns="2" style="margin-bottom:5px" cellpadding="2">
+                        <h:outputLabel for="private" value="Private:" />
+                        <p:selectBooleanCheckbox id="private" value="#{createEventBean.event.isPrivate}" />
+                    </h:panelGrid>
+
+                    <h:panelGrid columns="2" style="margin-bottom:5px" cellpadding="2">
+                        <h:outputLabel for="outdoor" value="Outdoor:" />
+                        <p:selectBooleanCheckbox id="outdoor" value="#{createEventBean.event.isOutdoor}" >
+                            <p:ajax update="flagGrid" />
+                        </p:selectBooleanCheckbox>
+                    </h:panelGrid>
+
+                    <p:outputLabel for="startingDate" value="Starting Date:" />
+                    <p:calendar  id="startingDate" pattern="dd/MM/yyyy HH:mm"
+                                 stepMinute="15" mindate="#{calendarBean.todayDate()}"  
+                                 value="#{createEventBean.event.startingDate}" >
+                        <p:ajax update="startingdatemsg,startingDate" async="true" />
+                    </p:calendar>
+                    <p:message id="startingdatemsg" for="startingDate" />
+
+                    <p:outputLabel for="endingDate" value="Ending Date:" />
+                    <p:calendar  id="endingDate" pattern="dd/MM/yyyy HH:mm" stepMinute="15" 
+                                 value="#{createEventBean.event.endingDate}" mindate="#{calendarBean.todayDate()}"> 
+                        <p:ajax update="endingdatemsg,endingDate" async="true" />
+                    </p:calendar>
+                    <p:message id="endingdatemsg" for="endingDate" />
+
+                    <h:panelGrid columns="4" style="margin-bottom:5px" cellpadding="2" id="flagGrid" >
+                        <h:outputLabel for="sunny" value="Sunny:" />
+                        <p:selectBooleanCheckbox id="sunny" value="#{createEventBean.event.sunnyFlag}"
+                                                 disabled="#{createEventBean.isOutdoor()}"/>
+
+                        <h:outputLabel for="cloudy" value="Cloudy:" />
+                        <p:selectBooleanCheckbox id="cloudy" value="#{createEventBean.event.cloudyFlag}"
+                                                 disabled="#{createEventBean.isOutdoor()}"/>
+
+                        <h:outputLabel for="rainy" value="Rainy:" />
+                        <p:selectBooleanCheckbox id="rainy" value="#{createEventBean.event.rainyFlag}" 
+                                                 disabled="#{createEventBean.isOutdoor()}"/>
+
+                        <h:outputLabel for="snowy" value="Snowy:" />
+                        <p:selectBooleanCheckbox id="snowy" value="#{createEventBean.event.snowyFlag}" 
+                                                 disabled="#{createEventBean.isOutdoor()}"/>
+                    </h:panelGrid>
+
+                    <h:panelGrid columns="2" style="margin-bottom:5px" cellpadding="15">
+                        <p:commandButton id="create" value="Confirm" action="#{createEventBean.createEvent()}"
+                                         async="true" update="invite,eventDetails" oncomplete="PF('inviteUsers').show()"
+                                         ajax="true" actionListener="#{invitationBean.init()}" />
+
+                        <p:commandButton id="cancel" value="Cancel" action="home"  ajax="false" update="@none"  />
+                    </h:panelGrid>
+                    <h:messages  style="color: red"/>
+                </h:panelGrid>
+            </p:dialog>  
+
+
+            <p:dialog widgetVar="inviteUsers" header="Invite Users" showEffect="clip" hideEffect="clip"
+                      resizable="false" draggable="false" closable="false" style="font-size: 20px"
+                      dynamic="true" id="invite" position="center" onShow="#{createEventBean.showDialog()}"
+                      modal="true">
+                <h:panelGrid id="invitation" >
+                    <p:growl id="msg" showDetail="false" escape="false" globalOnly="true"/>
+
+                    <h3>Now search for the users you want to invite and move them <br/> 
+                        to the column on the right through </h3>
+                    <p:pickList id="users" value="#{invitationBean.usersnames}" var="user" effect="bounce"
+                                itemValue="#{user}" itemLabel="#{user}" showSourceControls="false" 
+                                showTargetControls="false" showCheckbox="false" showSourceFilter="true" 
+                                showTargetFilter="true" filterMatchMode="contains" >
+
+                        <f:facet name="sourceCaption">Available</f:facet>
+                        <f:facet name="targetCaption">Invited</f:facet>
+
+                        <p:ajax event="transfer" listener="#{invitationBean.onTransfer}" update="msg" />
+
+                        <p:column style="width:100%;">
+                            <h:outputText value="#{user}" />
+                        </p:column>
+
+                    </p:pickList>
+
+                    <p:commandButton id="finish" value="Finish" update="users" onclick="PF('confirmation').show()" 
+                                     style="margin-top:5px" action="#{createEventBean.addInvitedUsers()}"
+                                     actionListener="#{calendarBean.init()}"/>
+                </h:panelGrid>
+            </p:dialog>
+
+
+            <p:dialog header="Event Confirmation" showEffect="explode" hideEffect="explode" widgetVar="confirmation"
+                      modal="true" closable="false" draggable="false" resizable="false" style="font-size: 25px">
+                <h:panelGrid id="confirmation" >
+                    The event has been successfully created and the selected users(if any)invited, <br />
+                    now the event is available on your calendar, please click continue to return to it! <br />
+
+                    <br />
+
+                    <p:commandButton id="complete" value="Continue" action="home?faces-redirect=true" />
+                </h:panelGrid>
+            </p:dialog>
+
+
+            <p:dialog header="Search User" showEffect="explode" hideEffect="explode" widgetVar="results"
+                      modal="true" draggable="false" resizable="false" dynamic="true" id="resultsDialog"
+                      style="font-size: 25px">
+                <h:panelGrid id="resultsList"  >
+                    Here are the results of your search; plus, if not private, <br />
+                    click on the username to visit the user calendar:   <br />
+
+                    <br />
+
+                    <p:dataList value="#{searchHandlerBean.results}" var="user" type="ordered"  >
+                        <f:facet name="header">
+                            Results
+                        </f:facet>
+                        <p:commandLink value="#{user.username}" action="home?faces-redirect=true" 
+                                       disabled="#{searchHandlerBean.checkLink(user.username)}" style="color: blue" >
+                            <f:setPropertyActionListener value="#{user}" target="#{searchHandlerBean.selected}" />
+                        </p:commandLink>
+                        ,
+                        Calendar: #{searchHandlerBean.checkUserCalendar(user)}
+                    </p:dataList>
+
+                </h:panelGrid>
+            </p:dialog> 
+
+
+            <p:dialog header="Notitications" showEffect="explode" hideEffect="explode" widgetVar="notificationsList"                   
+                      dynamic="true" modal="true" draggable="false" resizable="false" id="notificationsDialog" >
+                <h:outputText  id="info" value="There are no new notifications for you..." 
+                               rendered="#{notificationBean.isListEmpty()}"  />
+
+                <p:ajax update="notificationsDialog,dataScroller" async="true" />
+
+                <p:scrollPanel mode="native" style="width: 1100px; height: 700px " rendered="#{notificationBean.renderGrid()}">
+                    <p:dataScroller value="#{notificationBean.notifications}" var="notification" chunkSize="10" id="dataScroller"
+                                    rendered="#{notificationBean.renderGrid()}" >
+                        <f:facet name="header">
+                            Notifications List
+                        </f:facet>
+
+                        <h:panelGrid columns="2" style="width:100%">
+                            <p:outputPanel>
+                                <h:outputText value="#{notificationBean.setMessage(notification)}" 
+                                              style="font-style: italic;font-weight: bold" />
+
+                                <h:panelGrid columns="2" cellpadding="5">
+
+                                    <h:outputText value="Event Name:" />
+                                    <h:outputText value="#{notification.event.name}" style="font-style: italic" />
+
+                                    <h:outputText value="Creator:"/>
+                                    <h:outputText value="#{notification.event.creator.username}" style="font-style: italic" />
+
+                                    <h:outputText value="Weather Forecast:" rendered="#{notificationBean.isWeatherNotification(notification)}" />
+                                    <h:outputText value="#{notificationBean.getForecast(notification)}" 
+                                                  rendered="#{notificationBean.isWeatherNotification(notification)}" 
+                                                  style="font-style: italic"/>
+
+                                    <h:outputText value="BetterDay:" 
+                                                  rendered="#{notificationBean.checkBetterDay(notification)}" />
+                                    <h:outputText value="#{notificationBean.retrieveBetterDay(notification)}"
+                                                  rendered="#{notificationBean.checkBetterDay(notification)}"/>
+
+                                    <h:commandLink value="Go to the event page" action="#{notificationBean.eventLink(notification)}" 
+                                                   actionListener="#{eventBean.init()}"  style="font-style: italic;color: blue"/>                          
+                                </h:panelGrid>
+
+                                <h:panelGrid columns="2" cellspacing="50">
+
+                                    <p:commandButton id="accept" value="Accept"
+                                                     action="#{notificationBean.accept(notification)}"
+                                                     ajax="true" rendered="#{notificationBean.isInvitation(notification)}">
+                                        <p:ajax update="dataScroller" async="true" 
+                                                oncomplete="#{notificationBean.showMessage(notification)}" />
+                                    </p:commandButton>
+
+                                    <p:commandButton id="decline" value="Decline" 
+                                                     action="#{notificationBean.decline(notification)}" 
+                                                     ajax="true" rendered="#{notificationBean.isInvitation(notification)}">
+                                        <p:ajax update="dataScroller" async="true" />
+                                    </p:commandButton>
+
+                                    <p:commandButton id="deleteNotification" value="Delete Notification" 
+                                                     action="#{notificationBean.deleteWeatherNotification(notification)}" 
+                                                     ajax="true" rendered="#{notificationBean.isWeatherNotification(notification)}">
+                                        <p:ajax update="dataScroller" async="true" />
+                                    </p:commandButton>
+
+                                </h:panelGrid>
+                            </p:outputPanel>
+                        </h:panelGrid>
+                    </p:dataScroller>
+                </p:scrollPanel>
+            </p:dialog> 
+
+
+            <p:dialog header="Private Event" showEffect="explode" hideEffect="explode" widgetVar="message"
+                      dynamic="true" modal="true" draggable="false" resizable="false" >
+
+                <h:outputText value="#{calendarBean.message}" />
+
+            </p:dialog> 
+
+            <p:dialog header="Event Conflict" showEffect="explode" hideEffect="explode" widgetVar="error"
+                      dynamic="true" modal="true" draggable="false" resizable="false" >
+
+                <h:outputText value="Sorry, you can't accept this invitation, the relative event would overlap with one that you're attending!" />
+
+            </p:dialog> 
+
+
+            <!-- Import button -->
+
+            <p:dialog header="Import Calendar" showEffect="explode" hideEffect="explode" widgetVar="importCalendar" 
+                      modal="true" draggable="false" resizable="false" closable="false" style="font-size: 25px" >
+                <h:panelGrid >
+                    <h:form>
+                        <p:fileUpload fileUploadListener="#{importBean.handleFileUpload}" mode="advanced" dragDropSupport="false"
+                                      update="messages" sizeLimit="100000" fileLimit="3" allowTypes="/(\.|\/)(xml)$/"  />
+
+                        <p:growl id="messages" globalOnly="true" showDetail="false" sticky="true"/>
+
+                        <br />
+
+                        <p:commandButton id="close" value="Close" action="home?faces-redirect=true"  ajax="true" update="@all"  />
+                    </h:form>
+                </h:panelGrid>
+
+            </p:dialog>
+
+            <p:commandButton id="import" value="Import" update="@none" ajax="true" onclick="PF('importCalendar').show()"   
+                             style="position: absolute;margin: 2050px 1900px;" 
+                             rendered="#{searchHandlerBean.isYourCalendar()}" />
+
+            <p:dialog modal="true" widgetVar="statusDialog" header="Status" draggable="false" closable="false" resizable="false">
+                <p:graphicImage url="../images/ajaxloadingbar.gif" />
+            </p:dialog>
+
+            <!-- export button --> 
+
+            <p:commandButton id="export" value="Export"  ajax="false"  
+                             style="position: absolute;margin: 2050px 2120px;"
+                             rendered="#{searchHandlerBean.isYourCalendar()}"
+                             onclick="PrimeFaces.monitorDownload(start, stop);">
+                <p:fileDownload value="#{exportBean.file}" />
+            </p:commandButton>
+
+            <script type="text/javascript">
+                function start() {
+                    PF('statusDialog').show();
+                }
+
+                function stop() {
+                    PF('statusDialog').hide();
+                }
+            </script>
+
+
+
+        </h:form>
+    </h:body>
+</html>

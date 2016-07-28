@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:p="http://primefaces.org/ui">
+    <h:head>
+        <title>Profile Page</title>
+    </h:head>
+    <h:body style="background-color:lightblue;background-image: url(../images/cloudy.jpg); background-size: cover;
+            margin: 30px ;font-size:30px; width: 50%; height: 50% ">
+        <h:outputText value="Here are your personal information,#{userBean.username}:"  style="
+                          font-style: italic;font-size: 60px;margin: 0px 220px; position: absolute " />
+        <h:form style="margin: 80px 200px; position: absolute">
+            <p:panel header="Profile Form" style="background-color: lightblue;width: 2000px; " >
+                <h:panelGrid id="profileGrid" >
+                    <h:outputLabel for="name">Name:</h:outputLabel>
+                    <p:panel style="width: auto" >
+                        <h:outputText id="name" value="#{userBean.name}" />
+                    </p:panel>
+
+                    <h:outputLabel for="surname">Surname:</h:outputLabel>
+                    <p:panel style="width: auto" >
+                        <h:outputText id="surname" value="#{userBean.surname}" />
+                    </p:panel>
+
+                    <h:outputLabel for="email">Email:</h:outputLabel>
+                    <p:panel style="width: auto" >
+                        <h:outputText id="email" value="#{userBean.email}" />
+                    </p:panel>
+
+                    <h:outputLabel for="privateCalendar" value="Calendar:" />
+                    <p:panel style="width: auto" >
+                        <h:outputText id="privateCalendar" value="#{userBean.hasPrivateCalendar}" />
+                    </p:panel>
+
+                    <br />
+
+                    <p:commandButton id="editProfile" value="Edit Profile" onclick="PF('profileDialog').show();"
+                                     ajax="true" />
+                </h:panelGrid>
+            </p:panel>
+            <p:dialog widgetVar="profileDialog" header="Edit Profile" showEffect="clip" hideEffect="clip" 
+                      style="font-size: 25px" dynamic="true" closable="false"  > 
+                <h:panelGrid columns="1" id="editGrid" >
+                    <h:outputLabel for="editName">Name:</h:outputLabel>
+                    <p:inputText id="editName" value="#{userBean.user.name}" > 
+                        <p:ajax update="namemsg"/>
+                    </p:inputText>
+                    <p:message id="namemsg" for="editName" />
+
+                    <h:outputLabel for="editSurname">Surname:</h:outputLabel>
+                    <p:inputText id="editSurname" value="#{userBean.user.surname}" > 
+                        <p:ajax update="surnamemsg"/>
+                    </p:inputText>
+                    <p:message id="surnamemsg" for="editSurname" />
+
+                    <h:outputLabel for="editEmail">Email:</h:outputLabel>
+                    <p:inputText id="editEmail" value="#{userBean.user.email}" > 
+                        <p:ajax update="emailmsg"/>
+                    </p:inputText>
+                    <p:message id="emailmsg" for="editEmail" />
+
+                    <br />
+
+                    <p:commandButton id="change" value="Change Password" 
+                                     onsuccess="PF('changePassword').show();" /> 
+
+                    <p:dialog widgetVar="changePassword" header="Change Password" showEffect="clip" hideEffect="clip" 
+                              style="font-size: 25px" dynamic="true" closable="false" >
+                        <h:panelGrid columns="1" id="passwordGrid" >
+                            <h:outputLabel for="oldPassword">Old Password:</h:outputLabel>
+                            <p:password id="oldPassword" label="Old Password" value="#{userBean.oldPassword}"/>
+                            <p:message for="oldPassword" />
+
+                            <h:outputLabel for="newPassword">New Password:</h:outputLabel>
+                            <p:password id="newPassword" value="#{userBean.user.password}" 
+                                        feedback="true" match="pwd2" label="New Password" />
+                            <p:message for="newPassword" />
+
+                            <h:outputLabel for="pwd2">Confirm new Password:</h:outputLabel>
+                            <p:password id="pwd2" label="Confirm new Password"/>
+                            
+                            <h:panelGrid columns="2" style="margin-bottom:5px" cellpadding="15">
+                                <p:commandButton id="modify" value="Change" action="#{userBean.updateUserPassword()}"  
+                                                 ajax="true" update="passwordGrid,success"
+                                                 onsuccess="PF('confirmation').show()"/> 
+
+                                <p:commandButton id="abort" value="Cancel" onclick="profilePage"  ajax="false" update="@none"  />
+                            </h:panelGrid>
+                             <h:messages  style="color: red"/>
+                        </h:panelGrid>
+                        <h:messages  style="color: red"/>
+                    </p:dialog>
+                    
+                    <br />
+
+                    <h:panelGrid columns="2" >
+                        <h:outputLabel for="setPrivateCalendar" value="Private Calendar:" />
+                        <p:selectBooleanCheckbox id="setPrivateCalendar" value="#{userBean.user.hasPrivateCalendar}" />  
+                    </h:panelGrid>
+
+                    <br />
+
+                    <h:panelGrid columns="2" style="margin-bottom:5px" cellpadding="15">
+                        <p:commandButton id="confirm" value="Confirm" action="#{userBean.updateUserPersonalData()}"  
+                                         ajax="true" update="editGrid" /> 
+
+                        <p:commandButton id="cancel" value="Cancel" action="profilePage"  ajax="false" update="@none"  />
+                        
+                        <h:messages  style="color: red"/>
+                    </h:panelGrid>
+                </h:panelGrid>
+            </p:dialog>
+            
+            <p:dialog header="Password Confirmation" showEffect="fade" hideEffect="fade" widgetVar="confirmation"
+                      onShow="#{userBean.showDialog()}" id="success" dynamic="true" modal="true">
+                <h:panelGrid id="confirmation" >
+                    <h:outputText value="Your password has been successfully changed!" />
+                    
+                     <br />
+                    
+                     <p:commandButton id="complete" value="Continue" update="@all" />
+                </h:panelGrid>
+            </p:dialog> 
+            
+            <p:link outcome="home?faces-redirect=true" value="Go back to your home page"/>
+        </h:form>
+    </h:body>
+</html>
